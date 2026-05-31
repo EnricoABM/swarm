@@ -62,13 +62,13 @@
       "id": "ultrasonic1",
       "top": -296.1,
       "left": 226.3,
-      "attrs": { "distance": "2" }
+      "attrs": { "distance": "63" }
     },
     {
       "type": "wokwi-text",
       "id": "text4",
-      "top": -355.2,
-      "left": 230.4,
+      "top": -364.8,
+      "left": 297.6,
       "attrs": { "text": "Abertura/Fechamento \n           Janela" }
     },
     {
@@ -82,14 +82,14 @@
       "type": "wokwi-pir-motion-sensor",
       "id": "pir1",
       "top": -293.6,
-      "left": 415.02,
+      "left": 520.62,
       "attrs": {}
     },
     {
       "type": "wokwi-text",
       "id": "text6",
-      "top": -355.2,
-      "left": 412.8,
+      "top": -364.8,
+      "left": 518.4,
       "attrs": { "text": "Alarme de\nPresença" }
     },
     {
@@ -143,7 +143,7 @@
       "type": "board-mfrc522",
       "id": "rfid1",
       "top": -393.04,
-      "left": 478.75,
+      "left": 584.35,
       "rotate": 270,
       "attrs": {}
     },
@@ -151,22 +151,22 @@
       "type": "wokwi-text",
       "id": "text9",
       "top": -489.6,
-      "left": 652.8,
+      "left": 729.6,
       "attrs": { "text": "Fechadura\nEletrônica" }
     },
     {
       "type": "wokwi-pushbutton",
       "id": "btn1",
       "top": -326.5,
-      "left": 665.9,
+      "left": 771.5,
       "rotate": 90,
       "attrs": { "color": "green", "xray": "1", "bounce": "0" }
     },
     {
       "type": "wokwi-resistor",
       "id": "r3",
-      "top": -187.2,
-      "left": 661.85,
+      "top": -225.6,
+      "left": 767.45,
       "rotate": 90,
       "attrs": { "value": "1000" }
     },
@@ -184,6 +184,30 @@
       "top": 249.6,
       "left": 691.2,
       "attrs": { "text": "Fechadura\nEletrônica" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn2",
+      "top": -297.7,
+      "left": 435.5,
+      "rotate": 90,
+      "attrs": { "color": "green", "xray": "1" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r4",
+      "top": -206.4,
+      "left": 431.45,
+      "rotate": 90,
+      "attrs": { "value": "1000" }
+    },
+    { "type": "wokwi-potentiometer", "id": "pot1", "top": -298.9, "left": 19, "attrs": {} },
+    {
+      "type": "wokwi-text",
+      "id": "text10",
+      "top": -355.2,
+      "left": 0,
+      "attrs": { "text": "Potenciometro" }
     }
   ],
   "connections": [
@@ -207,28 +231,21 @@
     [ "bb1:bn.32", "drv1:GND.2", "black", [ "v123.5", "h-29.6" ] ],
     [ "led1:C", "r1:2", "black", [ "v0" ] ],
     [ "bz1:1", "r2:2", "black", [ "v0" ] ],
-    [ "ntc1:OUT", "bb1:2t.a", "green", [ "v0" ] ],
     [ "bb1:tp.1", "ntc1:VCC", "red", [ "v0" ] ],
     [ "ntc1:GND", "bb1:tn.2", "black", [ "v0" ] ],
     [ "bb1:tp.12", "ultrasonic1:VCC", "red", [ "v0" ] ],
     [ "ultrasonic1:GND", "bb1:tn.15", "black", [ "v0" ] ],
     [ "pir1:VCC", "bb1:tp.25", "red", [ "v0" ] ],
     [ "pir1:GND", "bb1:tn.27", "black", [ "v0" ] ],
-    [ "pir1:OUT", "bb1:33t.a", "green", [ "v0" ] ],
-    [ "ultrasonic1:TRIG", "bb1:17t.a", "green", [ "v0" ] ],
-    [ "ultrasonic1:ECHO", "bb1:18t.a", "green", [ "v0" ] ],
     [ "rfid1:GND", "bb1:tn.39", "black", [ "v0" ] ],
-    [ "bb1:tp.48", "btn1:1.r", "red", [ "v0" ] ],
+    [ "bb1:tp.48", "btn1:1.r", "red", [ "v-18.9", "h152.8" ] ],
     [ "btn1:2.r", "r3:1", "green", [ "v0" ] ],
-    [ "r3:2", "bb1:57t.a", "green", [ "h0" ] ],
     [ "bb1:46b.j", "bz1:2", "green", [ "v0" ] ],
     [ "bb1:53b.j", "led1:A", "green", [ "v0" ] ],
     [ "relay2:GND", "bb1:bn.49", "black", [ "v0" ] ],
     [ "relay2:VCC", "bb1:bp.50", "red", [ "v0" ] ],
     [ "relay2:IN", "bb1:59b.j", "green", [ "v0" ] ],
     [ "rfid1:3.3V", "esp:3V3", "red", [ "v76.8", "h-508.8", "v0", "h-201.6" ] ],
-    [ "bb1:2t.b", "esp:34", "green", [ "v9.6", "h-76.8", "v-96", "h-85.26" ] ],
-    [ "bb1:33t.b", "esp:33", "green", [ "v28.8", "h-355.2", "v-134.4", "h-133.26" ] ],
     [ "bb1:53b.i", "esp:13", "green", [ "h-28.8", "v38.4", "h-806.4", "v-172.8", "h87.54" ] ],
     [
       "esp:12",
@@ -242,22 +259,30 @@
       "green",
       [ "v-39.91", "h-58.74", "v0", "h-76.8", "v220.8", "h873.6", "v-67.2" ]
     ],
-    [ "bb1:17t.b", "esp:32", "green", [ "h-211.2", "v-115.2", "h-114.06" ] ],
-    [ "bb1:18t.c", "esp:35", "green", [ "v-19.2", "h-201.6", "v-115.2", "h-124.8" ] ],
     [ "esp:19", "rfid1:MISO", "green", [ "v27.14", "h-1.14" ] ],
     [ "esp:23", "rfid1:MOSI", "green", [ "v17.54", "h56.46", "v-48", "h489.6" ] ],
     [ "rfid1:SCK", "esp:18", "green", [ "v249.6", "h-576", "h-27.66" ] ],
     [ "esp:5", "rfid1:SDA", "green", [ "v17.54", "h-1.14" ] ],
     [ "esp:4", "rfid1:RST", "green", [ "v46.34", "h690.06" ] ],
-    [ "esp:25", "bb1:57t.b", "green", [ "v-78.31", "h680.46", "v105.6" ] ],
     [ "drv1:DIR", "esp:22", "orange", [ "v-86.4", "h-422.4" ] ],
     [ "drv1:STEP", "esp:26", "gold", [ "v-268.8", "h-499.2" ] ],
     [ "drv1:RESET", "drv1:SLEEP", "green", [ "v-9.6", "h-9.6" ] ],
-    [ "r1:1", "bb1:bn.44", "", [ "$bb" ] ],
-    [ "r2:1", "bb1:bn.38", "", [ "$bb" ] ],
     [ "relay1:IN", "esp:17", "green", [ "v-105.6", "h-373.06" ] ],
     [ "oled1:SDA", "esp:21", "green", [ "v-67.2", "h-211.13" ] ],
-    [ "esp:16", "oled1:SCL", "green", [ "v103.94", "h267.66" ] ]
+    [ "esp:16", "oled1:SCL", "green", [ "v103.94", "h267.66" ] ],
+    [ "pir1:OUT", "esp:33", "green", [ "v57.6", "h-594.2" ] ],
+    [ "r3:2", "esp:25", "green", [ "v37.2", "h-834.06" ] ],
+    [ "esp:34", "ntc1:OUT", "green", [ "v-78.31", "h123.66", "h38.3" ] ],
+    [ "ultrasonic1:TRIG", "esp:32", "green", [ "v67.2", "h-326.8" ] ],
+    [ "btn2:2.r", "r4:1", "green", [ "v0" ] ],
+    [ "btn2:1.r", "bb1:tp.28", "red", [ "v0" ] ],
+    [ "r4:2", "esp:27", "green", [ "v8.4", "h-517.26" ] ],
+    [ "bb1:tp.1", "pot1:VCC", "red", [ "v-18.9", "h-96.8" ] ],
+    [ "pot1:GND", "bb1:tn.1", "black", [ "v0" ] ],
+    [ "ultrasonic1:ECHO", "esp:15", "green", [ "v230.4", "h-423.2" ] ],
+    [ "esp:35", "pot1:SIG", "green", [ "v-87.91", "h46.86" ] ],
+    [ "r1:1", "bb1:bn.44", "", [ "$bb" ] ],
+    [ "r2:1", "bb1:bn.38", "", [ "$bb" ] ]
   ],
   "dependencies": {}
 }

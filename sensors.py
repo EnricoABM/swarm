@@ -95,3 +95,9 @@ class Button:
 
     def read(self):
         return self.pin.value()
+
+    def setIrq(self, function):
+        self.pin.irq(
+            trigger = Pin.IRQ_RISING,
+            handler = lambda pin: function()
+        )

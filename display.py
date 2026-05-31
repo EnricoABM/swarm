@@ -39,10 +39,19 @@ class Display:
     def getCurrentPage(self):
         return self.pages[self.pagesIndex]
 
-    def show(self, page):
+    def showPage(self, page):
         self.ssd1306.fill(0)
         self.ssd1306.text(page.message(), 0, 0, 1)
         self.ssd1306.show()
+
+    def write(self, text, x, y):
+        self.ssd1306.fill(0)
+        self.ssd1306.text(text, x, y, 1)
+
+    def show(self):
+        self.ssd1306.fill(0)
+        self.ssd1306.show()
+
 
     def showImage(self):
         
