@@ -34,28 +34,22 @@ from sensors import Thermostat, Ultrassonic, PIR, MFRC522, Button, Analog
 from actuators import Motor, Actuator
 from display import Display, Page
 from time import sleep, ticks_diff, ticks_ms
+from mqtt import Wifi, MQTT
+import urequests
+import ujson
 
-# Sensores
-tempSensor = Thermostat(34)
-ultrassonic = Ultrassonic(trig = 32, echo = 15)
+# Alarme
+
 pir = PIR(33)
-rfid = MFRC522()
-lock_btn = Button(25)
-window_btn = Button(27)
-pot = Analog(35)
-
-# Atuadores
-motor = Motor(direc = 22, step = 26)
-valv = Actuator(pin = 17, name = "Válvula Solenoide")
-lock = Actuator(pin = 14, name = "Fechadura")
 buzzer = Actuator(pin = 12, name = "Buzzer")
 led = Actuator(pin = 13, name = "LED de Alarme")
 
-# Logica
-# Alarme
 alarmMode = True
 alarmTrig = False
+alarmEmailSend = False
 def alarmLogic():
+    global alarmEmailSend
+
     if alarmMode == False:
         led.off()
         buzzer.off()
@@ -67,24 +61,47 @@ def alarmLogic():
     if (pir.hasMovement()):
         buzzer.toggle()
         alarmTrig = True
-        
+        if not alarmEmailSend:
+            sendAlarmTrig()
+            alarmEmailSend = True
+    else:
+        alarmTrig = False
+        alarmEmailSend = False
+
 # Fechadura
+
+rfid = MFRC522()
+lock_btn = Button(25)
+lock = Actuator(pin = 14, name = "Fechadura")
+
 cards = [
     "0x01030400",
     "0x11334400"
 ]
-
+doorSendEmail = False
 def lockLogic():
+    global doorSendEmail
     card_id = rfid.read()
 
     if card_id in cards:
         lock.off()
+        if not doorSendEmail:
+            sendOpenDoor()
+            doorSendEmail = True
 
     if lock_btn.read() == 1:
         lock.on()
+        doorSendEmail = False
+        
 
 # Janela
+
+ultrassonic = Ultrassonic(trig = 32, echo = 15)
+window_btn = Button(27)
+motor = Motor(direc = 22, step = 26)
+
 windowState = "closed"
+
 def windowLogic():
     
     global windowState
@@ -106,16 +123,22 @@ def toggleWindowState():
         windowState = "opened"
 
 # Fogão
+tempSensor = Thermostat(34)
+pot = Analog(35)
+valv = Actuator(pin = 17, name = "Válvula Solenoide")
+
 startTemp = 0
 timeout = 4_000
 startTime = 0
 timeStarted = False
 timeoutState = False
+timeDiff = 0
 def cook():
     global startTime
     global timeStarted
     global startTemp
-    global timeoutState 
+    global timeoutState
+    global timeDiff 
 
     if pot.voltage() >= 1 and not timeStarted and not timeoutState:
         startTime = ticks_ms()
@@ -134,6 +157,7 @@ def cook():
 
         if tempChange >= 20:
             valv.off()
+            startTime = ticks_ms()
             return 
 
         timeDiff = ticks_diff(ticks_ms(), startTime)
@@ -145,16 +169,63 @@ def cook():
             return
      
 
-
 # Exibição 
 oled = Display(sda = 21, scl = 16)
+
+# Google Sheets
+URL = "https://script.google.com/macros/s/AKfycbww3km1fySzPCaALdb9hLWHnaIJb-5eO_1l3G3H1ndMunG0QtZ1-FWeGBWk8tIPSLuJ/exec"
+
+def sendAlarmTrig():
+    try:
+        alarmData = {"Alarme": "ACIONADO"}
+        resposta = urequests.post(URL, json=alarmData)
+        print("Enviado;", alarmData, "| Resposta:", resposta.text)
+        resposta.close()
+    except Exception as e:
+        print("Erro ao enviar:", e)
+
+def sendOpenDoor():
+    try:
+        lockData = {"Fechadura": "ABERTA"}
+        resposta = urequests.post(URL, json=lockData)
+        print("Enviado;", lockData, "| Resposta:", resposta.text)
+        resposta.close()
+    except Exception as e:
+        print("Erro ao enviar:", e)
+
+
+#MQTT
+wifi = Wifi()
+
+mqtt = MQTT(
+    client_id = "esp32", 
+    broker = "bf2c85f1ce9144188a440df97e370c23.s1.eu.hivemq.cloud",
+    user = "hivemq.webclient.1776723263165", 
+    password = "60cN%d>Y;M4oQzL5h&Vn", 
+    wifi = wifi
+)
+
+mqtt.connect()
+
+mqttData = {}
 
 lock.on()
 window_btn.setIrq(toggleWindowState)
 print("Iniciando...")
 while True:
+
+    mqttData['alarmMode'] = alarmMode
+    mqttData['alarmTrig'] = alarmTrig
+    mqttData['lockMode'] = lock.value()
+    mqttData['windowState'] = windowState
+    mqttData['valv'] = valv.value()
+    mqttData['timeDiff'] = timeDiff
+    mqttData['timeoutState'] = timeoutState
+    mqttData['timeStarted'] = timeStarted
     
     alarmLogic()
     lockLogic()
     windowLogic()
     cook()
+
+    mqtt.publish("data", ujson.dumps(mqttData))

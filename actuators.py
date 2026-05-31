@@ -31,3 +31,6 @@ class Actuator:
         self.pin.value(
             not self.pin.value()
         )
+
+    def value(self):
+        return self.pin.value()
