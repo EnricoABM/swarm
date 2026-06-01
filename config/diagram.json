@@ -62,7 +62,7 @@
       "id": "ultrasonic1",
       "top": -296.1,
       "left": 226.3,
-      "attrs": { "distance": "63" }
+      "attrs": { "distance": "2" }
     },
     {
       "type": "wokwi-text",
@@ -75,7 +75,7 @@
       "type": "wokwi-text",
       "id": "text5",
       "top": 249.6,
-      "left": 163.2,
+      "left": 105.6,
       "attrs": { "text": "Exibição" }
     },
     {
@@ -208,6 +208,22 @@
       "top": -355.2,
       "left": 0,
       "attrs": { "text": "Potenciometro" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn3",
+      "top": 179,
+      "left": 38.4,
+      "rotate": 90,
+      "attrs": { "color": "green", "xray": "1" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r5",
+      "top": 119.45,
+      "left": -30.2,
+      "rotate": 180,
+      "attrs": { "value": "1000" }
     }
   ],
   "connections": [
@@ -282,7 +298,10 @@
     [ "ultrasonic1:ECHO", "esp:15", "green", [ "v230.4", "h-423.2" ] ],
     [ "esp:35", "pot1:SIG", "green", [ "v-87.91", "h46.86" ] ],
     [ "r1:1", "bb1:bn.44", "", [ "$bb" ] ],
-    [ "r2:1", "bb1:bn.38", "", [ "$bb" ] ]
+    [ "btn3:1.l", "bb1:bp.1", "red", [ "v-45.2", "h89.4" ] ],
+    [ "r2:1", "bb1:bn.38", "", [ "$bb" ] ],
+    [ "btn3:2.l", "r5:1", "green", [ "v0" ] ],
+    [ "r5:2", "esp:2", "green", [ "h-64.86" ] ]
   ],
   "dependencies": {}
 }

@@ -67,9 +67,16 @@ class MQTT:
         # Verifica se houve alteração na mensagem enviada
         # Evita envio desnecessário
         if (message != self.prev_message):
-            print(f"Send MQTT Topic: {topic}")
-            print(f"Message: {message}")
             self.client.publish(topic, message)
             self.prev_message = message
         else:
-            print("Sem alterações")
+            pass
+
+    def setCallback(self, method):
+        self.client.set_callback(method)
+
+    def subscribe(self, topic):
+        self.client.subscribe(topic)
+
+    def checkMsg(self):
+        self.client.check_msg()

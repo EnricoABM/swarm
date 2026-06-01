@@ -49,6 +49,7 @@ alarmTrig = False
 alarmEmailSend = False
 def alarmLogic():
     global alarmEmailSend
+    global alarmTrig
 
     if alarmMode == False:
         led.off()
@@ -65,7 +66,6 @@ def alarmLogic():
             sendAlarmTrig()
             alarmEmailSend = True
     else:
-        alarmTrig = False
         alarmEmailSend = False
 
 # Fechadura
@@ -78,20 +78,24 @@ cards = [
     "0x01030400",
     "0x11334400"
 ]
-doorSendEmail = False
+lastLockState = None
+
 def lockLogic():
-    global doorSendEmail
+    global lastLockState
     card_id = rfid.read()
 
     if card_id in cards:
         lock.off()
-        if not doorSendEmail:
-            sendOpenDoor()
-            doorSendEmail = True
-
     if lock_btn.read() == 1:
         lock.on()
-        doorSendEmail = False
+
+    currentState = lock.value()
+    if currentState != lastLockState:
+        if currentState == 0:
+            sendDoorStatus("ABERTA")
+        else:
+            sendDoorStatus("FECHADA")
+        lastLockState = currentState
         
 
 # Janela
@@ -150,6 +154,7 @@ def cook():
         valv.off()
         timeoutState = False
         timeStarted = False
+        timeDiff = 0
 
     if timeStarted:
         tempChange = tempSensor.calc() - startTemp 
@@ -170,23 +175,40 @@ def cook():
      
 
 # Exibição 
-oled = Display(sda = 21, scl = 16)
+pageBtn = Button(2)
+oled = Display(sda=21, scl=16)
+nextPage = lambda: oled.nextPage()
+pageBtn.setIrq(nextPage)
+
+securityPage = Page("SEGURANCA")
+cookPage = Page("FOGAO")
+homePage = Page("ENTRADAS")
+
+oled.addPage(securityPage)
+oled.addPage(cookPage)
+oled.addPage(homePage)
 
 # Google Sheets
 URL = "https://script.google.com/macros/s/AKfycbww3km1fySzPCaALdb9hLWHnaIJb-5eO_1l3G3H1ndMunG0QtZ1-FWeGBWk8tIPSLuJ/exec"
 
 def sendAlarmTrig():
     try:
-        alarmData = {"Alarme": "ACIONADO"}
+        alarmData = {
+            "event": "Alarme",
+            "status": "ACIONADO"
+        }
         resposta = urequests.post(URL, json=alarmData)
         print("Enviado;", alarmData, "| Resposta:", resposta.text)
         resposta.close()
     except Exception as e:
         print("Erro ao enviar:", e)
 
-def sendOpenDoor():
+def sendDoorStatus(status):
     try:
-        lockData = {"Fechadura": "ABERTA"}
+        lockData = {
+            "event": "Fechadura",
+            "status": status
+        }
         resposta = urequests.post(URL, json=lockData)
         print("Enviado;", lockData, "| Resposta:", resposta.text)
         resposta.close()
@@ -209,10 +231,32 @@ mqtt.connect()
 
 mqttData = {}
 
+def mqttCallback(topic, message):
+    global alarmMode
+    global windowState
+
+    if topic == b"alarm":
+        if message == b"true":
+            alarmMode = True
+        elif message == b"false":
+            alarmMode = False
+
+    elif topic == b"window":
+        if message == b"opened":
+            windowState = "opened"
+        elif message == b"closed":
+            windowState = "closed"
+
+mqtt.setCallback(mqttCallback)
+mqtt.subscribe(b"alarm")
+mqtt.subscribe(b"window")
+
 lock.on()
 window_btn.setIrq(toggleWindowState)
 print("Iniciando...")
 while True:
+
+    mqtt.checkMsg()
 
     mqttData['alarmMode'] = alarmMode
     mqttData['alarmTrig'] = alarmTrig
@@ -222,10 +266,34 @@ while True:
     mqttData['timeDiff'] = timeDiff
     mqttData['timeoutState'] = timeoutState
     mqttData['timeStarted'] = timeStarted
+
+    securityPage.setLines([
+        f"Alarme: {'Ativo' if alarmMode else 'Desativado'}",
+        f"Status: {'Alerta!!!' if alarmTrig else 'Normal'}"
+    ])
+
+    cookPage.setLines([
+        f"Valv: {'Lig' if valv.value() else 'Desl'}",
+        f"Crono: {timeDiff/1000:.2f}s",
+        f"Timer: {'Iniciado' if timeStarted else 'Pausado'}"
+    ])
+
+    homePage.setLines([
+        f"Porta: {'Fechada' if lock.value() else 'Aberta'}",
+        f"Janela: {'Fechada' if windowState == 'closed' else 'Aberta' }"
+    ])
+
+
+
+    oled.showPage(
+        oled.getCurrentPage()
+    )
     
     alarmLogic()
     lockLogic()
     windowLogic()
     cook()
+
+    
 
     mqtt.publish("data", ujson.dumps(mqttData))
