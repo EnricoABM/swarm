@@ -1,6 +1,7 @@
 # ========= OLED =========
 # 21 - SDA OLED
 # 16 - SCL OLED
+# 2 - Botão
 
 # ========= FOGÃO =========
 # 34 - Termostato - ADC
@@ -27,8 +28,6 @@
 # 33 - MOTION - DIG
 # 12 - BUZZER
 # 13 - ALARME LED MODE
-# 14 - Fechadura
-
 
 from sensors import Thermostat, Ultrassonic, PIR, MFRC522, Button, Analog
 from actuators import Motor, Actuator
@@ -92,9 +91,11 @@ def lockLogic():
     currentState = lock.value()
     if currentState != lastLockState:
         if currentState == 0:
-            sendDoorStatus("ABERTA")
+            # sendDoorStatus("ABERTA")
+            pass
         else:
-            sendDoorStatus("FECHADA")
+            pass
+            # sendDoorStatus("FECHADA")
         lastLockState = currentState
         
 
@@ -197,8 +198,9 @@ def sendAlarmTrig():
             "event": "Alarme",
             "status": "ACIONADO"
         }
+        print("Enviando para Google Sheets")
         resposta = urequests.post(URL, json=alarmData)
-        print("Enviado;", alarmData, "| Resposta:", resposta.text)
+        print("Enviado;", alarmData)
         resposta.close()
     except Exception as e:
         print("Erro ao enviar:", e)
@@ -209,8 +211,9 @@ def sendDoorStatus(status):
             "event": "Fechadura",
             "status": status
         }
+        print("Enviando para Google Sheets")
         resposta = urequests.post(URL, json=lockData)
-        print("Enviado;", lockData, "| Resposta:", resposta.text)
+        print("Enviado;", lockData)
         resposta.close()
     except Exception as e:
         print("Erro ao enviar:", e)
